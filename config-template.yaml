@@ -1,0 +1,43 @@
+imap_accounts:
+
+  marc@becheftigt.de:
+    user_name: marc@becheftigt.de
+    user_pass: secret
+    host_name: mail.your-server.de
+    port: 993
+
+folders:
+  - name: marc@becheftigt.de/Inbox
+    rules:
+      - name: facebook
+        predicate: >
+          "notification@facebookmail.com" in connection.get_from(mail_message)
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.filtered")
+      - name: fritz
+        predicate: >
+          "FRITZ!Box-Info" in connection.get_subject(mail_message)
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.fritz")
+      - name: xing
+        predicate: >
+          "mailrobot@mail.xing.com" in connection.get_from(mail_message)
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.filtered")
+      - name: quora
+        predicate: >
+          ("Quora Digest <german-digest-noreply@quora.com>" in connection.get_from(mail_message))
+          or ("Quora Digest <digest-noreply@quora.com>" in connection.get_from(mail_message))
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.filtered")
+      - name: medium
+        predicate: >
+          "Medium Daily Digest" in connection.get_from(mail_message)
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.filtered")
+      - name: moderate
+        predicate: >
+          ("[Zu Ihren Diensten] Bitte moderiere" in connection.get_subject(mail_message))
+          or ("[Marc Gorzala] Bitte moderiere" in connection.get_subject(mail_message))
+          or ("[BeChefTigt] Bitte moderiere" in connection.get_subject(mail_message))
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.filtered")
+      - name: chaos
+        predicate: >
+          ("discuss@lists.chaostreff-dortmund.de" in connection.get_to(mail_message))
+          or ("discuss@lists.chaostreff-dortmund.de" in connection.get_cc(mail_message))
+        action: connection.move_to_folder(imap_connection, message_id, "INBOX.sonstiges.ml.chaos")
