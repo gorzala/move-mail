@@ -1,6 +1,5 @@
 import yaml
 import connection
-import email
 
 
 def get_config(file_name):
