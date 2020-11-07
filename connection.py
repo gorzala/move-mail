@@ -8,8 +8,40 @@ def create_connection(user, password, host, port):
     imap_connection.login(user, password)
     return imap_connection
 
-def move_mail(source, destination):
-    print(f"Moving from: {source} to: {destination}");
+def __get_connection_for_folder__(config, folder):
+    imap_connection_id = folder.split("/")[0]
+    if imap_connection_id in pool:
+        return pool[imap_connection_id]
+    else:
+        pool[imap_connection_id] = __create_connection_from_config__(
+            config['imap_accounts'][imap_connection_id])
+        return pool[imap_connection_id]
+
+
+def __create_connection_from_config__(server_config):
+    return create_connection(server_config['user_name'],
+                             server_config['user_pass'],
+                             server_config['host_name'],
+                             server_config['port'])
+
+def move_mail(raw_message, destination):
+    print("+"*100)
+    subject = get_subject(email.message_from_bytes(raw_message))
+    print(f"Current pool: {pool}")
+    print(f"Moving \"{subject}\" from to: {destination}!!!!!!!");
+    server_id, folder = extract_server_and_folder(destination)
+    print(f"To server: {server_id} and folder: {folder}")
+    connection = pool[server_id]
+    print("Using connection: " + str(connection))
+
+    res, data = connection.append(folder, None, None, raw_message)
+    if "OK" == res:
+        print("")
+    print(pool)
+
+
+def extract_server_and_folder(destination):
+    return destination.split("/", 1)
 
 
 def move_to_folder(connection, mail_id, folder):
@@ -43,11 +75,12 @@ def get_cc(mail):
     else:
         return ""
 
-
-def get_mail_by_id(connection, mail_id):
+def get_raw_message(connection, mail_id):
     print("Getting mail with id: " + str(mail_id))
     result, data = connection.uid('fetch', mail_id, '(BODY.PEEK[])')
-    raw_email = data[0][1]
-    #    raw_email_string = raw_email.decode('utf-8')
-    email_message = email.message_from_bytes(raw_email)
+    return data[0][1]
+
+
+def get_mail_by_id(connection, mail_id):
+    email_message = email.message_from_bytes(get_raw_message(connection, mail_id))
     return email_message
